@@ -1,0 +1,818 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Name - Chef Portfolio</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter for a clean, modern look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Custom styles for Inter font and scroll behavior */
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1a1a1a; /* Darker track for dark theme */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #FF7F00;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #e66f00;
+        }
+        /* Mobile navigation menu styles */
+        .mobile-nav-menu {
+            transition: transform 0.3s ease-out;
+            transform: translateX(100%); /* Hidden by default */
+        }
+        .mobile-nav-menu.active {
+            transform: translateX(0); /* Visible when active */
+        }
+        /* Custom Message Box Styles */
+        .message-box-overlay, .menu-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .message-box-overlay.active, .menu-modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .message-box-content, .menu-modal-content {
+            background-color: #333;
+            padding: 2.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 90%;
+            width: 400px;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease-in-out;
+            color: white; /* Ensure text is visible on dark background */
+        }
+        .message-box-overlay.active .message-box-content,
+        .menu-modal-overlay.active .menu-modal-content {
+            transform: translateY(0);
+        }
+        .menu-modal-content {
+            width: 600px; /* Wider for menu */
+            max-height: 80vh; /* Max height for scrollability */
+            overflow-y: auto; /* Enable scrolling for long menus */
+            text-align: left; /* Align menu text left */
+        }
+        .menu-modal-content h3 {
+            color: #FF7F00; /* Orange for menu categories */
+            font-size: 1.75rem; /* Larger font for categories */
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #FF7F00;
+            padding-bottom: 0.5rem;
+        }
+        .menu-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px dotted #555;
+        }
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+        .menu-item-name {
+            font-weight: 600;
+            color: #eee;
+        }
+        .menu-item-price {
+            color: #FF7F00;
+            font-weight: 500;
+        }
+        .menu-item-description {
+            font-size: 0.9rem;
+            color: #bbb;
+            margin-top: 0.25rem;
+        }
+
+        /* Custom style for the outflowing image effect */
+        .outflow-image-container {
+            width: 400px; /* Same as image width */
+            height: 400px; /* Same as image height */
+            border-radius: 50%; /* Make it circular */
+            overflow: hidden; /* Clip content outside the circle */
+            position: relative; /* For positioning the image inside */
+            background-color: #1a1a1a; /* Background for the circle */
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .outflow-image-container img {
+            position: absolute;
+            top: 0;
+            left: 50%; /* Center image horizontally */
+            transform: translateX(-50%) translateY(-10%); /* Adjust vertical position to outflow */
+            width: 120%; /* Make image wider than container */
+            height: 120%; /* Make image taller than container */
+            object-fit: cover;
+            border-radius: 0; /* Remove border-radius from the image itself */
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white antialiased">
+
+    <!-- Custom Message Box HTML -->
+    <div id="custom-message-box" class="message-box-overlay">
+        <div class="message-box-content">
+            <p id="message-box-text" class="text-lg mb-6"></p>
+            <button id="message-box-close" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-6 rounded-md transition duration-300">
+                Close
+            </button>
+        </div>
+    </div>
+
+    <!-- New Menu Modal HTML -->
+    <div id="menu-modal" class="menu-modal-overlay">
+        <div class="menu-modal-content">
+            <button id="menu-modal-close" class="absolute top-4 right-4 text-gray-300 hover:text-orange-500 focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h2 class="text-4xl font-bold text-center mb-8 text-orange-500">Our Culinary Menu</h2>
+
+            <div class="mb-8">
+                <h3>Appetizers</h3>
+                <div class="menu-item">
+                    <div>
+                        <div class="menu-item-name">Caprese Skewers</div>
+                        <p class="menu-item-description">Fresh mozzarella, cherry tomatoes, basil, balsamic glaze.</p>
+                    </div>
+                    <div class="menu-item-price">$12</div>
+                </div>
+                <div class="menu-item">
+                    <div>
+                        <div class="menu-item-name">Crispy Calamari</div>
+                        <p class="menu-item-description">Lightly fried, served with spicy marinara.</p>
+                    </div>
+                    <div class="menu-item-price">$15</div>
+                </div>
+                <div class="menu-item">
+                    <div>
+                        <div class="menu-item-name">Chef's Daily Soup</div>
+                        <p class="menu-item-description">Ask your server for today's special.</p>
+                    </div>
+                    <div class="menu-item-price">$9</div>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <h3>Main Courses</h3>
+                <div class="menu-item">
+                    <div>
+                        <div class="menu-item-name">Pan-Seared Duck Breast</div>
+                        <p class="menu-item-description">With cherry reduction and roasted asparagus.</p>
+                    </div>
+                    <div class="menu-item-price">$32</div>
+                </div>
+                <div class="menu-item">
+                    <div>
+                        <div class="menu-item-name">Wild Mushroom Risotto</div>
+                        <p class="menu-item-description">Arborio rice, assorted wild mushrooms, truffle oil.</p>
+                    </div>
+                    <div class="menu-item-price">$24</div>
+                </div>
+                <div class="menu-item">
+                    <div>
+                        <div class="menu-item-name">Grilled Lamb Chops</div>
+                        <p class="menu-item-description">Served with mint pesto and garlic mashed potatoes.</p>
+                    </div>
+                    <div class="menu-item-price">$38</div>
+                </div>
+                <div class="menu-item">
+                    <div>
+                        <div class="menu-item-name">Vegetable Curry</div>
+                        <p class="menu-item-description">Seasonal vegetables in a rich coconut curry sauce, jasmine rice.</p>
+                    </div>
+                    <div class="menu-item-price">$20</div>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <h3>Desserts</h3>
+                <div class="menu-item">
+                    <div>
+                        <div class="menu-item-name">Chocolate Lava Cake</div>
+                        <p class="menu-item-description">Warm chocolate cake with a molten center, vanilla bean ice cream.</p>
+                    </div>
+                    <div class="menu-item-price">$11</div>
+                </div>
+                <div class="menu-item">
+                    <div>
+                        <div class="menu-item-name">Crème Brûlée</div>
+                        <p class="menu-item-description">Classic vanilla custard with a caramelized sugar crust.</p>
+                    </div>
+                    <div class="menu-item-price">$10</div>
+                </div>
+            </div>
+
+            <div>
+                <h3>Beverages</h3>
+                <div class="menu-item">
+                    <div class="menu-item-name">Espresso</div>
+                    <div class="menu-item-price">$4</div>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-item-name">Freshly Squeezed Orange Juice</div>
+                    <div class="menu-item-price">$6</div>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-item-name">Sparkling Water</div>
+                    <div class="menu-item-price">$5</div>
+                </div>
+            </div>
+
+            <button id="menu-modal-close-bottom" class="mt-8 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-6 rounded-md transition duration-300">
+                Close Menu
+            </button>
+        </div>
+    </div>
+
+    <!-- Header/Navbar Section -->
+    <header class="sticky top-0 z-50 bg-gray-900 bg-opacity-95 shadow-lg">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="text-2xl font-bold text-orange-500">LOGO</div>
+            <nav class="hidden md:flex space-x-8">
+                <a href="#hero" class="text-gray-300 hover:text-orange-500 transition duration-300">Home</a>
+                <a href="#services" class="text-gray-300 hover:text-orange-500 transition duration-300">Services</a>
+                <a href="#about" class="text-gray-300 hover:text-orange-500 transition duration-300">About Me</a>
+                <a href="#portfolio" class="text-gray-300 hover:text-orange-500 transition duration-300">Portfolio</a>
+                <a href="#contact" class="text-gray-300 hover:text-orange-500 transition duration-300">Contact</a>
+            </nav>
+            <button class="hidden md:block bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-6 rounded-md shadow-md transition duration-300">
+                Book a Tasting
+            </button>
+            <!-- Mobile Menu Button (Hamburger) -->
+            <button id="mobile-menu-button" class="md:hidden text-gray-300 hover:text-orange-500 focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+        </div>
+        <!-- Mobile Navigation Menu -->
+        <div id="mobile-nav-menu" class="mobile-nav-menu fixed top-0 right-0 h-full w-64 bg-gray-900 shadow-lg p-8 md:hidden z-50">
+            <button id="close-mobile-menu" class="absolute top-4 right-4 text-gray-300 hover:text-orange-500 focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <nav class="flex flex-col space-y-6 mt-10">
+                <a href="#hero" class="text-gray-300 hover:text-orange-500 transition duration-300 text-lg" onclick="document.getElementById('mobile-nav-menu').classList.remove('active');">Home</a>
+                <a href="#services" class="text-gray-300 hover:text-orange-500 transition duration-300 text-lg" onclick="document.getElementById('mobile-nav-menu').classList.remove('active');">Services</a>
+                <a href="#about" class="text-gray-300 hover:text-orange-500 transition duration-300 text-lg" onclick="document.getElementById('mobile-nav-menu').classList.remove('active');">About Me</a>
+                <a href="#portfolio" class="text-gray-300 hover:text-orange-500 transition duration-300 text-lg" onclick="document.getElementById('mobile-nav-menu').classList.remove('active');">Portfolio</a>
+                <a href="#contact" class="text-gray-300 hover:text-orange-500 transition duration-300 text-lg" onclick="document.getElementById('mobile-nav-menu').classList.remove('active');">Contact</a>
+                <button class="mt-4 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-6 rounded-md shadow-md transition duration-300">
+                    Book a Tasting
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="hero" class="relative bg-gray-800 py-20 md:py-32 overflow-hidden">
+        <div class="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-12">
+            <!-- Left Content -->
+            <div class="text-center md:text-left md:w-1/2">
+                <p class="text-orange-500 text-lg font-medium mb-2">Hi I am</p>
+                <h1 class="text-5xl md:text-6xl font-extrabold leading-tight mb-4 text-white">
+                    Kefa Elvis Mukhwana
+                </h1>
+                <h2 class="text-3xl md:text-4xl font-semibold text-orange-500 mb-8">
+                    Master Chef
+                </h2>
+                <div class="flex justify-center md:justify-start space-x-4 mb-10">
+                    <a href="#" class="w-10 h-10 bg-gray-700 hover:bg-orange-500 text-gray-300 hover:text-white rounded-full flex items-center justify-center transition duration-300 text-xl">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-gray-700 hover:bg-orange-500 text-gray-300 hover:text-white rounded-full flex items-center justify-center transition duration-300 text-xl">
+                        <i class="fab fa-pinterest"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-gray-700 hover:bg-orange-500 text-gray-300 hover:text-white rounded-full flex items-center justify-center transition duration-300 text-xl">
+                        <i class="fab fa-youtube"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-gray-700 hover:bg-orange-500 text-gray-300 hover:text-white rounded-full flex items-center justify-center transition duration-300 text-xl">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                </div>
+                <div class="flex flex-col sm:flex-row justify-center md:justify-start gap-4 mb-10">
+                    <button id="book-table-btn" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-8 rounded-md shadow-lg transition duration-300">
+                        Book a Table
+                    </button>
+                    <button id="view-menu-btn" class="bg-transparent border-2 border-gray-600 hover:bg-gray-700 text-gray-300 hover:text-white font-semibold py-3 px-8 rounded-md shadow-lg transition duration-300">
+                        View Menu
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center md:text-left">
+                    <div class="bg-gray-700 p-4 rounded-lg shadow-md">
+                        <p class="text-2xl font-bold text-orange-500">15+</p>
+                        <p class="text-gray-300">Years Exp.</p>
+                    </div>
+                    <div class="bg-gray-700 p-4 rounded-lg shadow-md">
+                        <p class="text-2xl font-bold text-orange-500">500+</p>
+                        <p class="text-gray-300">Dishes Created</p>
+                    </div>
+                    <div class="bg-gray-700 p-4 rounded-lg shadow-md">
+                        <p class="text-2xl font-bold text-orange-500">200+</p>
+                        <p class="text-gray-300">Happy Diners</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Right Image -->
+            <div class="md:w-1/2 flex justify-center md:justify-end">
+                <!-- Outflowing Image Container -->
+                <div class="outflow-image-container">
+                    <img src="images/WhatsApp Image 2025-07-05 at 20.17.50_ffe96f14.jpg" alt="Chef Profile Picture" class="w-full h-full object-cover">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="py-20 md:py-28 bg-gray-900">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-4xl md:text-5xl font-bold mb-16 text-white">My Services</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Service Item 1 -->
+                <div class="bg-gray-800 p-8 rounded-lg shadow-xl hover:shadow-2xl transform hover:-translate-y-2 transition duration-300">
+                    <div class="text-5xl text-orange-500 mb-6">🍽️</div>
+                    <h3 class="text-2xl font-semibold mb-4 text-white">Private Dining</h3>
+                    <p class="text-gray-300 leading-relaxed">
+                        Exclusive culinary experiences crafted for your intimate gatherings.
+                    </p>
+                </div>
+                <!-- Service Item 2 -->
+                <div class="bg-gray-800 p-8 rounded-lg shadow-xl hover:shadow-2xl transform hover:-translate-y-2 transition duration-300">
+                    <div class="text-5xl text-orange-500 mb-6">🎉</div>
+                    <h3 class="text-2xl font-semibold mb-4 text-white">Catering Events</h3>
+                    <p class="text-gray-300 leading-relaxed">
+                        Delivering gourmet food for events of all sizes, from corporate to weddings.
+                    </p>
+                </div>
+                <!-- Service Item 3 -->
+                <div class="bg-gray-800 p-8 rounded-lg shadow-xl hover:shadow-2xl transform hover:-translate-y-2 transition duration-300">
+                    <div class="text-5xl text-orange-500 mb-6">🧑‍🍳</div>
+                    <h3 class="text-2xl font-semibold mb-4 text-white">Cooking Classes</h3>
+                    <p class="text-gray-300 leading-relaxed">
+                        Hands-on lessons to master culinary techniques and new recipes.
+                    </p>
+                </div>
+                <!-- Add more service items here following the same structure -->
+                <!--
+                <div class="bg-gray-800 p-8 rounded-lg shadow-xl hover:shadow-2xl transform hover:-translate-y-2 transition duration-300">
+                    <div class="text-5xl text-orange-500 mb-6">📝</div>
+                    <h3 class="text-2xl font-semibold mb-4 text-white">Menu Development</h3>
+                    <p class="text-gray-300 leading-relaxed">
+                        Creating unique and balanced menus tailored to your preferences.
+                    </p>
+                </div>
+                <div class="bg-gray-800 p-8 rounded-lg shadow-xl hover:shadow-2xl transform hover:-translate-y-2 transition duration-300">
+                    <div class="text-5xl text-orange-500 mb-6">🔪</div>
+                    <h3 class="text-2xl font-semibold mb-4 text-white">Recipe Creation</h3>
+                    <p class="text-gray-300 leading-relaxed">
+                        Developing innovative and delicious recipes for various cuisines.
+                    </p>
+                </div>
+                <div class="bg-gray-800 p-8 rounded-lg shadow-xl hover:shadow-2xl transform hover:-translate-y-2 transition duration-300">
+                    <div class="text-5xl text-orange-500 mb-6">🍷</div>
+                    <h3 class="text-2xl font-semibold mb-4 text-white">Wine Pairing</h3>
+                    <p class="text-gray-300 leading-relaxed">
+                        Expert recommendations to complement your dishes perfectly.
+                    </p>
+                </div>
+                -->
+            </div>
+        </div>
+    </section>
+
+    <!-- About Me Section -->
+    <section id="about" class="py-20 md:py-28 bg-gray-800">
+        <div class="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-12">
+            <!-- Left Image -->
+            <div class="md:w-1/2 flex justify-center md:justify-start">
+                <img src="images/stock-photo-smiling-black-baker-with-apron-holding-tray-of-small-pastry-and-looking-at-camera-young-african-698862394 (1).jpg" alt="Chef in Kitchen" class="rounded-lg shadow-2xl max-w-full h-auto">
+            </div>
+            <!-- Right Content -->
+            <div class="text-center md:text-left md:w-1/2">
+                <h2 class="text-4xl md:text-5xl font-bold mb-8 text-white">About My Culinary Journey</h2>
+                <p class="text-gray-300 leading-relaxed mb-6">
+                    With over 15 years of experience in the culinary world, I've honed my skills in various kitchens, from fine dining restaurants to bustling catering operations. My passion lies in transforming fresh, quality ingredients into unforgettable dishes that delight the senses.
+                </p>
+                <p class="text-gray-300 leading-relaxed mb-8">
+                    I believe that food is an art form, a way to connect people, and a source of immense joy. My journey has been driven by a continuous quest for new flavors, techniques, and culinary traditions from around the globe. Let me bring that passion to your table.
+                </p>
+
+                <a id="download-resume-btn" href="#" download="Kefa_Elvis_Mukhwana_Resume.txt" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-8 rounded-md shadow-lg transition duration-300 mb-10">
+                    Download My Resume
+                </a>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
+                    <div class="flex flex-col items-center">
+                        <div class="text-4xl text-orange-500 mb-2">✅</div>
+                        <p class="text-xl font-semibold text-white">100%<br>Satisfaction</p>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="text-4xl text-orange-500 mb-2">⭐</div>
+                        <p class="text-xl font-semibold text-white">Top<br>Ratings</p>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="text-4xl text-orange-500 mb-2">🏆</div>
+                        <p class="text-xl font-semibold text-white">Culinary<br>Awards</p>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="text-4xl text-orange-500 mb-2">🧑‍🍳</div>
+                        <p class="text-xl font-semibold text-white">Expert<br>Chef</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Portfolio Section -->
+    <section id="portfolio" class="py-20 md:py-28 bg-gray-900">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-4xl md:text-5xl font-bold mb-12 text-white">My Culinary Creations</h2>
+            <div class="flex flex-wrap justify-center gap-4 mb-16" id="portfolio-filters">
+                <button class="px-6 py-3 rounded-md font-medium transition duration-300
+                               bg-orange-500 text-white hover:bg-orange-600 filter-button" data-filter="all">
+                    All Dishes
+                </button>
+                <button class="px-6 py-3 rounded-md font-medium transition duration-300
+                               bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white filter-button" data-filter="appetizers">
+                    Appetizers
+                </button>
+                <button class="px-6 py-3 rounded-md font-medium transition duration-300
+                               bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white filter-button" data-filter="main_courses">
+                    Main Courses
+                </button>
+                <button class="px-6 py-3 rounded-md font-medium transition duration-300
+                               bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white filter-button" data-filter="desserts">
+                    Desserts
+                </button>
+                <button class="px-6 py-3 rounded-md font-medium transition duration-300
+                               bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white filter-button" data-filter="baking">
+                    Baking
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-16" id="portfolio-items-container">
+                <!-- Portfolio Item 1: Appetizer -->
+                <div class="portfolio-item bg-gray-800 rounded-lg shadow-xl overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300" data-category="appetizers">
+                    <img src="images/EswXcZrJQlOPVTJYju2G-DSCF2752.webp" alt="Gourmet Salad" class="w-full h-48 object-cover">
+                    <div class="p-6 text-left">
+                        <h3 class="text-xl font-semibold text-white mb-2">Seasonal Garden Salad</h3>
+                        <p class="text-gray-300 text-sm">Appetizers</p>
+                    </div>
+                </div>
+                <!-- Portfolio Item 2: Main Course -->
+                <div class="portfolio-item bg-gray-800 rounded-lg shadow-xl overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300" data-category="main_courses">
+                    <img src="images/TFRRdWFuQm4 (1).webp" alt="Seared Salmon" class="w-full h-48 object-cover">
+                    <div class="p-6 text-left">
+                        <h3 class="text-xl font-semibold text-white mb-2">Pan-Seared Salmon</h3>
+                        <p class="text-gray-300 text-sm">Main Courses</p>
+                    </div>
+                </div>
+                <!-- Portfolio Item 3: Dessert -->
+                <div class="portfolio-item bg-gray-800 rounded-lg shadow-xl overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300" data-category="desserts">
+                    <img src="images/42c2fea64ca512bf934195addb13efed.webp" alt="Chocolate Lava Cake" class="w-full h-48 object-cover">
+                    <div class="p-6 text-left">
+                        <h3 class="text-xl font-semibold text-white mb-2">Decadent Lava Cake</h3>
+                        <p class="text-gray-300 text-sm">Desserts</p>
+                    </div>
+                </div>
+                <!-- Portfolio Item 4: Baking -->
+                <div class="portfolio-item bg-gray-800 rounded-lg shadow-xl overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300" data-category="baking">
+                    <img src="images/artisan-bread-process-shots-6.webp" alt="Artisan Bread" class="w-full h-48 object-cover">
+                    <div class="p-6 text-left">
+                        <h3 class="text-xl font-semibold text-white mb-2">Artisan Sourdough Bread</h3>
+                        <p class="text-gray-300 text-sm">Baking</p>
+                    </div>
+                </div>
+                <!-- Portfolio Item 5: Main Course -->
+                <div class="portfolio-item bg-gray-800 rounded-lg shadow-xl overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300" data-category="main_courses">
+                    <img src="images/Creamy-Mushroom-Pasta-07.webp" alt="Creamy Pasta Dish" class="w-full h-48 object-cover">
+                    <div class="p-6 text-left">
+                        <h3 class="text-xl font-semibold text-white mb-2">Creamy Mushroom Pasta</h3>
+                        <p class="text-gray-300 text-sm">Main Courses</p>
+                    </div>
+                </div>
+                <!-- Portfolio Item 6: Appetizer -->
+                <div class="portfolio-item bg-gray-800 rounded-lg shadow-xl overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300" data-category="appetizers">
+                    <img src="images/summer-bruschetta-20657088.webp" alt="Bruschetta Platter" class="w-full h-48 object-cover">
+                    <div class="p-6 text-left">
+                        <h3 class="text-xl font-semibold text-white mb-2">Classic Bruschetta Platter</h3>
+                        <p class="text-gray-300 text-sm">Appetizers</p>
+                    </div>
+                </div>
+                <!-- Portfolio Item 7: Dessert -->
+                <div class="portfolio-item bg-gray-800 rounded-lg shadow-xl overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300" data-category="desserts">
+                    <img src="images/fresh-fruit-tart-1200x628.26.webp" alt="Fresh Fruit Tart" class="w-full h-48 object-cover">
+                    <div class="p-6 text-left">
+                        <h3 class="text-xl font-semibold text-white mb-2">Fresh Berry Tart</h3>
+                        <p class="text-gray-300 text-sm">Desserts</p>
+                    </div>
+                </div>
+                <!-- Portfolio Item 8: Main Course -->
+                <div class="portfolio-item bg-gray-800 rounded-lg shadow-xl overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300" data-category="main_courses">
+                    <img src="images/Roasted-Chicken-with-Lemon-Recipe-1200.webp" alt="Roasted Chicken" class="w-full h-48 object-cover">
+                    <div class="p-6 text-left">
+                        <h3 class="text-xl font-semibold text-white mb-2">Herb Roasted Chicken</h3>
+                        <p class="text-gray-300 text-sm">Main Courses</p>
+                    </div>
+                </div>
+                <!-- Portfolio Item 9: Baking -->
+                <div class="portfolio-item bg-gray-800 rounded-lg shadow-xl overflow-hidden hover:shadow-2xl transform hover:-translate-y-2 transition duration-300" data-category="desktop">
+                    <img src="images/il_300x300.6957227070_4u9q.webp" alt="Gourmet Cupcakes" class="w-full h-48 object-cover">
+                    <div class="p-6 text-left">
+                        <h3 class="text-xl font-semibold text-white mb-2">Gourmet Vanilla Cupcakes</h3>
+                        <p class="text-gray-300 text-sm">Baking</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Me Section -->
+    <section id="contact" class="py-20 md:py-28 bg-gray-800">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-4xl md:text-5xl font-bold mb-4 text-white">Book My Services</h2>
+            <p class="text-gray-300 text-lg mb-16">Cultivating Connections: Reach Out And Connect With Me</p>
+            <div class="max-w-3xl mx-auto bg-gray-900 p-8 md:p-12 rounded-lg shadow-xl">
+                <form class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <input type="text" placeholder="Name" class="w-full p-4 rounded-md bg-gray-700 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300" required>
+                    </div>
+                    <div>
+                        <input type="email" placeholder="Email" class="w-full p-4 rounded-md bg-gray-700 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300" required>
+                    </div>
+                    <div>
+                        <input type="text" placeholder="Phone Number" class="w-full p-4 rounded-md bg-gray-700 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300">
+                    </div>
+                    <div class="relative">
+                        <select class="w-full p-4 rounded-md bg-gray-700 text-gray-300 appearance-none focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300 pr-10" required>
+                            <option value="" disabled selected>Type of Service</option>
+                            <option value="private_dining">Private Dining</option>
+                            <option value="catering">Catering Events</option>
+                            <option value="cooking_class">Cooking Classes</option>
+                            <option value="menu_development">Menu Development</option>
+                            <option value="recipe_creation">Recipe Creation</option>
+                            <option value="wine_pairing">Wine Pairing</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-300">
+                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 6.757 7.586 5.343 9z"/></svg>
+                        </div>
+                    </div>
+                    <div>
+                        <input type="text" placeholder="Preferred Date/Timeline" class="w-full p-4 rounded-md bg-gray-700 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300">
+                    </div>
+                    <div class="md:col-span-2">
+                        <textarea placeholder="Event/Project Details..." rows="6" class="w-full p-4 rounded-md bg-gray-700 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300" required></textarea>
+                    </div>
+                    <div class="md:col-span-2 flex justify-end">
+                        <button type="submit" class="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-8 rounded-md shadow-lg transition duration-300">
+                            Send Request
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer Section -->
+    <footer class="bg-gray-900 py-12">
+        <div class="container mx-auto px-4 text-center flex flex-col items-center">
+            <div class="text-3xl font-bold text-orange-500 mb-6">LOGO</div>
+            <nav class="flex flex-wrap justify-center space-x-6 md:space-x-8 mb-8">
+                <a href="#hero" class="text-gray-300 hover:text-orange-500 transition duration-300">Home</a>
+                <a href="#services" class="text-gray-300 hover:text-orange-500 transition duration-300">Services</a>
+                <a href="#about" class="text-gray-300 hover:text-white transition duration-300">About me</a>
+                <a href="#portfolio" class="text-gray-300 hover:text-white transition duration-300">Portfolio</a>
+                <a href="#contact" class="text-gray-300 hover:text-white transition duration-300">Contact me</a>
+            </nav>
+            <div class="flex justify-center space-x-6 mb-8">
+                <a href="#" class="w-10 h-10 bg-gray-700 hover:bg-orange-500 text-gray-300 hover:text-white rounded-full flex items-center justify-center transition duration-300 text-xl">
+                    <i class="fab fa-instagram"></i>
+                </a>
+                <a href="#" class="w-10 h-10 bg-gray-700 hover:bg-orange-500 text-gray-300 hover:text-white rounded-full flex items-center justify-center transition duration-300 text-xl">
+                    <i class="fab fa-pinterest"></i>
+                </a>
+                <a href="#" class="w-10 h-10 bg-gray-700 hover:bg-orange-500 text-gray-300 hover:text-white rounded-full flex items-center justify-center transition duration-300 text-xl">
+                    <i class="fab fa-youtube"></i>
+                </a>
+                <a href="#" class="w-10 h-10 bg-gray-700 hover:bg-orange-500 text-gray-300 hover:text-white rounded-full flex items-center justify-center transition duration-300 text-xl">
+                    <i class="fab fa-facebook-f"></i>
+                </a>
+            </div>
+            <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-8 mb-8 text-gray-300">
+                <p class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail mr-2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                    Mahmood.fazile7005@gmail.com
+                </p>
+                <p class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-phone mr-2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-3.86-4.97 19.5 19.5 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    +93 729 107 005
+                </p>
+            </div>
+            <hr class="border-gray-700 w-full max-w-xl mb-8">
+            <p class="text-gray-400 text-sm">Designed by @mahmood.fazile Chef & Culinary Artist</p>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile Menu Toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileNavMenu = document.getElementById('mobile-nav-menu');
+        const closeMobileMenuButton = document.getElementById('close-mobile-menu');
+
+        mobileMenuButton.addEventListener('click', () => {
+            mobileNavMenu.classList.add('active');
+        });
+
+        closeMobileMenuButton.addEventListener('click', () => {
+            mobileNavMenu.classList.remove('active');
+        });
+
+        // Close mobile menu when a nav link is clicked
+        const mobileNavLinks = mobileNavMenu.querySelectorAll('a');
+        mobileNavLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                mobileNavMenu.classList.remove('active');
+            });
+        });
+
+        // Portfolio Filtering
+        const filterButtons = document.querySelectorAll('.filter-button');
+        const portfolioItems = document.querySelectorAll('.portfolio-item');
+        const portfolioItemsContainer = document.getElementById('portfolio-items-container');
+
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons
+                filterButtons.forEach(btn => {
+                    btn.classList.remove('bg-orange-500', 'text-white');
+                    btn.classList.add('bg-gray-800', 'text-gray-300', 'hover:bg-gray-700', 'hover:text-white');
+                });
+
+                // Add active class to the clicked button
+                button.classList.add('bg-orange-500', 'text-white');
+                button.classList.remove('bg-gray-800', 'text-gray-300', 'hover:bg-gray-700', 'hover:text-white');
+
+                const filter = button.dataset.filter;
+
+                // Animate out current items
+                portfolioItemsContainer.style.opacity = 0;
+                portfolioItemsContainer.style.transform = 'translateY(20px)';
+
+                setTimeout(() => {
+                    portfolioItems.forEach(item => {
+                        if (filter === 'all' || item.dataset.category === filter) {
+                            item.style.display = 'block'; // Show item
+                        } else {
+                            item.style.display = 'none'; // Hide item
+                        }
+                    });
+
+                    // Animate in filtered items
+                    portfolioItemsContainer.style.opacity = 1;
+                    portfolioItemsContainer.style.transform = 'translateY(0)';
+                }, 300); // Match this duration with the CSS transition for a smoother effect
+            });
+        });
+
+        // Custom Message Box Functions
+        const messageBox = document.getElementById('custom-message-box');
+        const messageBoxText = document.getElementById('message-box-text');
+        const messageBoxCloseButton = document.getElementById('message-box-close');
+
+        function showMessageBox(message) {
+            messageBoxText.textContent = message;
+            messageBox.classList.add('active');
+        }
+
+        function hideMessageBox() {
+            messageBox.classList.remove('active');
+        }
+
+        messageBoxCloseButton.addEventListener('click', hideMessageBox);
+        messageBox.addEventListener('click', (event) => {
+            if (event.target === messageBox) { // Close if clicking outside the content box
+                hideMessageBox();
+            }
+        });
+
+        // Menu Modal Functions
+        const menuModal = document.getElementById('menu-modal');
+        const menuModalCloseButton = document.getElementById('menu-modal-close');
+        const menuModalCloseBottomButton = document.getElementById('menu-modal-close-bottom');
+
+        function showMenuModal() {
+            menuModal.classList.add('active');
+        }
+
+        function hideMenuModal() {
+            menuModal.classList.remove('active');
+        }
+
+        menuModalCloseButton.addEventListener('click', hideMenuModal);
+        menuModalCloseBottomButton.addEventListener('click', hideMenuModal);
+        menuModal.addEventListener('click', (event) => {
+            if (event.target === menuModal) { // Close if clicking outside the content box
+                hideMenuModal();
+            }
+        });
+
+        // Event Listeners for "Book a Table" and "View Menu" buttons
+        const bookTableBtn = document.getElementById('book-table-btn');
+        const viewMenuBtn = document.getElementById('view-menu-btn');
+
+        if (bookTableBtn) {
+            bookTableBtn.addEventListener('click', () => {
+                showMessageBox("Thank you for your interest! Your table booking request has been received. We'll contact you shortly to confirm.");
+            });
+        }
+
+        if (viewMenuBtn) {
+            viewMenuBtn.addEventListener('click', showMenuModal); // Now opens the menu modal
+        }
+
+        // Generate and set the downloadable resume link
+        document.addEventListener('DOMContentLoaded', () => {
+            const downloadResumeBtn = document.getElementById('download-resume-btn');
+            if (downloadResumeBtn) {
+                const resumeContent = `
+Kefa Elvis Mukhwana
+Master Chef
+
+Contact:
+Email: kefa.mukhwana@example.com
+Phone: +1 (555) 123-4567
+LinkedIn: linkedin.com/in/kefaelvismukhwana
+
+Summary:
+Highly creative and experienced Master Chef with over 15 years of culinary expertise in fine dining, catering, and menu development. Passionate about crafting exquisite dishes, leading kitchen teams, and delivering unparalleled dining experiences. Proven ability to innovate, manage operations, and maintain the highest standards of food quality and presentation.
+
+Experience:
+
+Master Chef | Gourmet Bistro | New York, NY
+January 2018 - Present
+- Led a team of 10 chefs, overseeing all kitchen operations, menu design, and quality control.
+- Developed and introduced seasonal menus that increased customer satisfaction by 25%.
+- Managed inventory and reduced food waste by 15% through efficient planning.
+- Trained and mentored junior chefs, fostering a collaborative and high-performance environment.
+
+Sous Chef | The Culinary Haven | Chicago, IL
+June 2012 - December 2017
+- Assisted the Head Chef in daily kitchen management, including prep, cooking, and plating.
+- Specialized in pastry and dessert creation, contributing to a 20% increase in dessert sales.
+- Ensured compliance with health and safety regulations.
+
+Line Cook | Bistro Royale | London, UK
+September 2008 - May 2012
+- Prepared and cooked a variety of dishes with precision and speed.
+- Collaborated with team members to ensure smooth service during peak hours.
+- Maintained a clean and organized workstation.
+
+Education:
+
+Culinary Arts Degree | Le Cordon Bleu | Paris, France
+September 2006 - June 2008
+
+Skills:
+Menu Development, Fine Dining, Catering, Pastry & Baking, Food Cost Management, Team Leadership, Inventory Control, Culinary Innovation, Sanitation & Safety, International Cuisine, Plating & Presentation.
+
+Awards & Recognition:
+- "Chef of the Year" - City Culinary Awards (2022)
+- Gold Medalist - National Culinary Competition (2019)
+                `.trim(); // .trim() removes leading/trailing whitespace
+
+                const blob = new Blob([resumeContent], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                downloadResumeBtn.href = url;
+            }
+        });
+    </script>
+
+</body>
+</htm
